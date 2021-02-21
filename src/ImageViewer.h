@@ -68,4 +68,5 @@ private slots:
 	// Cvicenie #1 Slots -> Graph settings + Buttons
 	void on_pushButton_Draw_clicked();
 	void on_pushButton_Erase_clicked();
+	void on_spinBox_Interval_valueChanged(int x);
 };

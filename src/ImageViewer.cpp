@@ -7,11 +7,17 @@ ImageViewer::ImageViewer(QWidget* parent)
 
 	ui->spinBox_xAxisDivision->findChild<QLineEdit*>()->setReadOnly(true); // courtesy of Filip Vlahy
 
+	// vytvorenie nejakeho default obrazka
 	openNewTabForImg(new ViewerWidget("Default window", QSize(800, 400)));
 	ui->tabWidget->setCurrentIndex(ui->tabWidget->count() - 1);
 
+	// custom farba pre pozadie a nakreslenie osi
 	getCurrentViewerWidget()->clear();
 	getCurrentViewerWidget()->drawAxes(ui->spinBox_xAxisDivision->value());
+
+	int interval = ui->spinBox_Interval->value();
+
+	ui->label_ShowInterval->setText(QString("(-") + QString("%1").arg(interval) + QString("π,") + QString("%1").arg(interval) + QString("π)"));
 }
 
 //ViewerWidget functions
@@ -306,4 +312,14 @@ void ImageViewer::on_pushButton_Erase_clicked()
 	clearImage();
 
 	getCurrentViewerWidget()->drawAxes(ui->spinBox_xAxisDivision->value());
+}
+
+void ImageViewer::on_spinBox_Interval_valueChanged(int x)
+{
+	int interval = ui->spinBox_Interval->value();
+
+	QString toShow = QString("(-") + QString("%1").arg(interval) + QString("π,") + QString("%1").arg(interval) + QString("π)");
+	qDebug() << toShow;
+
+	ui->label_ShowInterval->setText(toShow);
 }
