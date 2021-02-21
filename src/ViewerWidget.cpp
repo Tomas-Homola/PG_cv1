@@ -111,10 +111,10 @@ void ViewerWidget::drawYAxisSteps(int axisSteps, QPoint& origin, int stepSize)
 
 void ViewerWidget::drawAxes(int axisSteps) // nakreslenie osi
 {
-	QPoint origin(img->width() / 2, img->height() / 2); // bod (0,0)
+	QPoint origin(static_cast<int>(img->width() / 2 + 0.5), static_cast<int>(img->height() / 2 + 0.5)); // bod (0,0)
 	
 	QPen currentPen;
-	currentPen.setWidth(2); currentPen.setColor("black");
+	currentPen.setWidth(2); currentPen.setColor("white");
 	painter->setPen(currentPen);
 
 	QPoint xAxisBegin(0 + margin, origin.y()); // zaciatok osi x
@@ -147,7 +147,7 @@ void ViewerWidget::drawAxes(int axisSteps) // nakreslenie osi
 void ViewerWidget::drawSin(int graphType, int interval, int axisSteps) // nakreslenie "Sin(x)"
 {
 	QPoint origin(img->width() / 2, img->height() / 2);
-	int* sinValues = new int[axisSteps / 2]; // pole pre funkcne hodnoty sinusu
+	int* sinValues = new int[(axisSteps / 2) + 1]; // pole pre funkcne hodnoty sinusu
 	
 	double length = interval * M_PI; // akoby dlzka intervalu kladnej casti x osi
 	double stepSize = length / (double)(axisSteps / 2); // dlzka kroku
@@ -159,53 +159,109 @@ void ViewerWidget::drawSin(int graphType, int interval, int axisSteps) // nakres
 	double position = 0.0;
 	double value = 0.0;
 	qDebug() << "\nCalculating values:";
-	for (int i = 0; i < (axisSteps / 2); i++) // vypocet funkcnych hodnot
+	for (int i = 0; i < (axisSteps / 2) + 1; i++) // vypocet funkcnych hodnot
 	{
-		position += stepSize;
 		value = sin(position);
 		qDebug() << "value:" << value;
 
 		sinValues[i] = (int)round(((value - r_min) / (r_max - r_min)) * (t_max - t_min) + t_min); // preskalovanie funkcnej hodnoty
+
+		position += stepSize;
 		qDebug() << "scaled value:" << sinValues[i];
 	}
 
 	QPen currentPen;
 	currentPen.setWidth(6);
-	currentPen.setColor(QColor(31, 117, 254)); // vlastna modra
+	currentPen.setColor(QColor("#1F75FE")); // vlastna modra
 	painter->setPen(currentPen);
-
+	
 	int xSemiAxislength = origin.x() - margin; // dlzka polovice osi x
 	int xAxisStepSize = xSemiAxislength / (axisSteps / 2); // dlzka kroku na osi x
 
+	QPoint step(origin.x(), origin.y());
+
 	if (graphType == 0) // plot points
 	{
-		QPoint step(origin.x(), origin.y());
-
-		for (int i = 0; i < (axisSteps / 2); i++)
+		for (int i = 0; i < (axisSteps / 2) + 1; i++)
 		{
-			step.setX(step.x() + xAxisStepSize);
-
 			painter->drawPoint(step.x(), step.y() - sinValues[i]);
-			qDebug() << "point drawn";
+
+			step.setX(step.x() + xAxisStepSize);
 		}
 
 		step.setX(origin.x());
 
-		for (int i = 0; i < (axisSteps / 2); i++)
+		for (int i = 0; i < (axisSteps / 2) + 1; i++)
 		{
-			step.setX(step.x() - xAxisStepSize);
-
 			painter->drawPoint(step.x(), step.y() + sinValues[i]);
-			qDebug() << "point drawn";
+
+			step.setX(step.x() - xAxisStepSize);
 		}
 	}
 	else if (graphType == 1) // bar graph
 	{
+		currentPen.setColor("black"); currentPen.setWidth(1); painter->setPen(currentPen);
 
+		//QPoint step(origin.x(), origin.y());
+
+		for (int i = 0; i < (axisSteps / 2) + 1; i++)
+		{
+			painter->fillRect(step.x() - (xAxisStepSize / 2), step.y() - sinValues[i], xAxisStepSize, sinValues[i], QColor("#1F75FE")); // vnutro stlpca
+
+			painter->drawRect(step.x() - (xAxisStepSize / 2), step.y() - sinValues[i], xAxisStepSize, sinValues[i]); // ohranicenie stlpca
+
+			step.setX(step.x() + xAxisStepSize);
+		}
+
+		step.setX(origin.x());
+
+		for (int i = 0; i < (axisSteps / 2) + 1; i++)
+		{
+			painter->fillRect(step.x() - (xAxisStepSize / 2), step.y(), xAxisStepSize, sinValues[i], QColor("#1F75FE"));
+			
+			painter->drawRect(step.x() - (xAxisStepSize / 2), step.y(), xAxisStepSize, sinValues[i]); // ohranicenie stlpca
+
+			step.setX(step.x() - xAxisStepSize);
+		}
+
+		//drawAxes(axisSteps);
 	}
 	else if (graphType == 2) // line graph
 	{
+		currentPen.setWidth(2); painter->setPen(currentPen);
 
+		QPoint startPoint(step.x(), step.y() + sinValues[0]);
+		QPoint endPoint;
+
+		for (int i = 1; i < (axisSteps / 2) + 1; i++)
+		{
+			step.setX(step.x() + xAxisStepSize);
+			
+			endPoint.setX(step.x());
+			endPoint.setY(step.y() - sinValues[i]);
+
+			painter->drawLine(startPoint, endPoint);
+
+			startPoint.setX(endPoint.x());
+			startPoint.setY(endPoint.y());
+		}
+
+		step.setX(origin.x());
+		startPoint.setX(step.x());
+		startPoint.setY(step.y() + sinValues[0]);
+
+		for (int i = 1; i < (axisSteps / 2) + 1; i++)
+		{
+			step.setX(step.x() - xAxisStepSize);
+
+			endPoint.setX(step.x());
+			endPoint.setY(step.y() + sinValues[i]);
+
+			painter->drawLine(startPoint, endPoint);
+
+			startPoint.setX(endPoint.x());
+			startPoint.setY(endPoint.y());
+		}
 	}
 
 	delete[] sinValues;
@@ -214,7 +270,7 @@ void ViewerWidget::drawSin(int graphType, int interval, int axisSteps) // nakres
 void ViewerWidget::drawCos(int graphType, int interval, int axisSteps) // nakreslenie "Cos(x)"
 {
 	QPoint origin(img->width() / 2, img->height() / 2);
-	int* cosValues = new int[axisSteps / 2]; // pole pre funkcne hodnoty cos(x)
+	int* cosValues = new int[(axisSteps / 2) + 1]; // pole pre funkcne hodnoty cos(x)
 
 	double length = interval * M_PI; // akoby dlzka intervalu kladnej casti x osi
 	double stepSize = length / (double)(axisSteps / 2); // dlzka kroku
@@ -226,34 +282,120 @@ void ViewerWidget::drawCos(int graphType, int interval, int axisSteps) // nakres
 	double position = 0.0;
 	double value = 0.0;
 	qDebug() << "\nCalculating values:";
-	for (int i = 0; i < (axisSteps / 2); i++) // vypocet funkcnych hodnot
+	for (int i = 0; i < (axisSteps / 2) + 1; i++) // vypocet funkcnych hodnot
 	{
-		position += stepSize;
 		value = cos(position);
 		qDebug() << "value:" << value;
 
 		cosValues[i] = (int)round(((value - r_min) / (r_max - r_min)) * (t_max - t_min) + t_min); // preskalovanie funkcnej hodnoty
 		qDebug() << "scaled value:" << cosValues[i];
+
+		position += stepSize;
 	}
 
+	QPen currentPen;
+	currentPen.setWidth(6);
+	currentPen.setColor(QColor("#00AD33")); // vlastna zelena
+	painter->setPen(currentPen);
+
+	int xSemiAxislength = origin.x() - margin; // dlzka polovice osi x
+	int xAxisStepSize = xSemiAxislength / (axisSteps / 2); // dlzka kroku na osi x
+
+	QPoint step(origin.x(), origin.y());
 
 	if (graphType == 0) // plot points
 	{
+		// kladna cast osi x
+		for (int i = 0; i < (axisSteps / 2) + 1; i++)
+		{
+			painter->drawPoint(step.x(), step.y() - cosValues[i]);
+			qDebug() << "point drawn";
+			step.setX(step.x() + xAxisStepSize);
+		}
 
+		step.setX(origin.x());
+
+		// zaporna cast osi x
+		for (int i = 0; i < (axisSteps / 2) + 1; i++)
+		{
+			painter->drawPoint(step.x(), step.y() - cosValues[i]);
+			qDebug() << "point drawn";
+			step.setX(step.x() - xAxisStepSize);
+		}
 	}
 	else if (graphType == 1) // bar graph
 	{
+		currentPen.setColor("black"); currentPen.setWidth(1); painter->setPen(currentPen);
 
+		// kladna cast osi x
+		for (int i = 0; i < (axisSteps / 2) + 1; i++)
+		{
+			painter->fillRect(step.x() - (xAxisStepSize / 2), step.y() - cosValues[i], xAxisStepSize, cosValues[i], QColor("#00AD33"));
+
+			painter->drawRect(step.x() - (xAxisStepSize / 2), step.y() - cosValues[i], xAxisStepSize, cosValues[i]);
+
+			step.setX(step.x() + xAxisStepSize);
+		}
+
+		step.setX(origin.x());
+
+		// zaporna cast osi x
+		for (int i = 0; i < (axisSteps / 2) + 1; i++)
+		{
+			painter->fillRect(step.x() - (xAxisStepSize / 2), step.y() - cosValues[i], xAxisStepSize, cosValues[i], QColor("#00AD33"));
+
+			painter->drawRect(step.x() - (xAxisStepSize / 2), step.y() - cosValues[i], xAxisStepSize, cosValues[i]);
+
+			step.setX(step.x() - xAxisStepSize);
+		}
+
+		drawAxes(axisSteps);
 	}
 	else if (graphType == 2) // line graph
 	{
+		currentPen.setWidth(2); painter->setPen(currentPen);
 
+		QPoint startPoint(step.x(), step.y() - cosValues[0]);
+		QPoint endPoint;
+
+		for (int i = 1; i < (axisSteps / 2) + 1; i++)
+		{
+			step.setX(step.x() + xAxisStepSize);
+
+			endPoint.setX(step.x());
+			endPoint.setY(step.y() - cosValues[i]);
+
+			painter->drawLine(startPoint, endPoint);
+
+			startPoint.setX(endPoint.x());
+			startPoint.setY(endPoint.y());
+		}
+
+		step.setX(origin.x());
+		startPoint.setX(step.x());
+		startPoint.setY(step.y() - cosValues[0]);
+
+		for (int i = 1; i < (axisSteps / 2) + 1; i++)
+		{
+			step.setX(step.x() - xAxisStepSize);
+
+			endPoint.setX(step.x());
+			endPoint.setY(step.y() - cosValues[i]);
+
+			painter->drawLine(startPoint, endPoint);
+
+			startPoint.setX(endPoint.x());
+			startPoint.setY(endPoint.y());
+		}
 	}
+
+	delete[] cosValues;
 }
 
 void ViewerWidget::clear()
 {
-	img->fill(Qt::white);
+	//img->fill(Qt::white);
+	img->fill(QColor(45, 45, 45)); // custom grey
 	update();
 }
 

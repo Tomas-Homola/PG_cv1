@@ -10,6 +10,7 @@ ImageViewer::ImageViewer(QWidget* parent)
 	openNewTabForImg(new ViewerWidget("Default window", QSize(800, 400)));
 	ui->tabWidget->setCurrentIndex(ui->tabWidget->count() - 1);
 
+	getCurrentViewerWidget()->clear();
 	getCurrentViewerWidget()->drawAxes(ui->spinBox_xAxisDivision->value());
 }
 
@@ -220,6 +221,9 @@ void ImageViewer::newImageAccepted()
 	QString name = newImgDialog->getName();
 	openNewTabForImg(new ViewerWidget(name, QSize(width, height)));
 	ui->tabWidget->setCurrentIndex(ui->tabWidget->count() - 1);
+
+	getCurrentViewerWidget()->clear();
+	getCurrentViewerWidget()->drawAxes(ui->spinBox_xAxisDivision->value());
 }
 void ImageViewer::on_actionOpen_triggered()
 {
