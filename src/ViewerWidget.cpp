@@ -63,7 +63,7 @@ void ViewerWidget::drawXAxisSteps(int axisSteps, QPoint& origin)
 {
 	QPen currentPen;
 	currentPen.setWidth(2); currentPen.setColor("white"); painter->setPen(currentPen);
-	int n = axisSteps + 1;
+	//int n = axisSteps + 1;
 	//int* xCoordinates = new int[n];
 	int xCoordinate = 0;
 
@@ -136,75 +136,85 @@ void ViewerWidget::drawAxes(int axisSteps) // nakreslenie osi
 	currentPen.setWidth(1);
 	painter->setPen(currentPen);
 
-	int xSemiAxislength = origin.x() - xAxisBegin.x(); // dlzka polovice osi x
-	int xAxisStepSize = xSemiAxislength / (axisSteps / 2); // dlzka kroku na osi x
-	//qDebug() << "x axis step size:" << xAxisStepSize;
-
-	int ySemiAxislength = origin.y() - yAxisBegin.y(); // dlzka polovice osi y
-	int yAxisStepSize = ySemiAxislength / (axisSteps / 2); // dlzka kroku na osi y
-	//qDebug() << "y axis step size:" << yAxisStepSize;
-
-	drawXAxisSteps(axisSteps, origin, xAxisStepSize); // nakreslenie delenia osi x
-	drawYAxisSteps(axisSteps, origin, yAxisStepSize); // nakreslenie delenia osi y
+	drawXAxisSteps(axisSteps, origin); // nakreslenie delenia osi x
+	drawYAxisSteps(axisSteps, origin); // nakreslenie delenia osi y
 
 	update();
 }
 
 void ViewerWidget::drawSin(int graphType, int interval, int axisSteps) // nakreslenie "Sin(x)"
 {
-	QPoint origin(img->width() / 2, img->height() / 2);
-	int* sinValues = new int[(axisSteps / 2) + 1]; // pole pre funkcne hodnoty sinusu
-	
-	double length = interval * M_PI; // akoby dlzka intervalu kladnej casti x osi
-	double stepSize = length / (double)(axisSteps / 2); // dlzka kroku
+	QPoint origin(static_cast<int>(img->width() / 2 + 0.5), static_cast<int>(img->height() / 2 + 0.5)); // bod (0,0)
+
+	QPen currentPen; currentPen.setWidth(6); currentPen.setColor(QColor("#1F75FE")); // vlastna modra
+	painter->setPen(currentPen);
 
 	//sposob skalovania funkcnych hodnot https://stats.stackexchange.com/questions/281162/scale-a-number-between-a-range
 	double r_min = 0.0; double r_max = 1.0;
-	double t_min = 0.0; double t_max = (double)origin.y() - (double)margin;
+	double sin_min = -1.0; double sin_max = 1.0;
+	double t_min_X = static_cast<double>(margin); double t_max_X = (double)img->width() - (double)margin; // min a max pre hodnoty na osi x
+	double t_min_Sin_X = -interval * M_PI; double t_max_Sin_X = interval * M_PI; // min a max pre hodnoty na osi x, ktora je od (-nπ,nπ)
+	double t_min_Y = (double)img->height() - (double)margin; double t_max_Y = (double)margin; // pre os y
 
-	double position = 0.0;
-	double value = 0.0;
-	qDebug() << "\nCalculating values:";
-	for (int i = 0; i < (axisSteps / 2) + 1; i++) // vypocet funkcnych hodnot
+	// Myslienka:
+	// posuvanie bude rovnake ako pri kresleni dielikov na osi x, tu sa ale ta spravna hodnota xCoordinate preskaluje 
+	// do intervalu (-nπ,nπ), potom z tej hodnoty sa vypocita funkcna hodnota sin(x) a to sa potom preskaluje 
+	// tak, aby to sedelo s osou y
+
+	double length = 1.0;
+	double dStepSize = length / static_cast<double>(axisSteps);
+	QPoint step(margin, origin.y());
+	double valueStep = 0.0;
+	double sinDoubleValue = 0.0;
+	double valueForSin = 0.0;
+	int xCoordinate = 0;
+	int sinValue = 0;
+
+	/*qDebug() << t_min_Sin_X << ":::" << t_max_Sin_X;
+
+	for (int i = 0; i < axisSteps + 1; i++)
 	{
-		value = sin(position);
-		qDebug() << "value:" << value;
+		qDebug() << "valueStep:" << valueStep;
+		xCoordinate = static_cast<int>(valueStep * (t_max_X - t_min_X) + t_min_X + 0.5); // spravna suradnica x na osi x
+		qDebug() << "xCoordinate:" << xCoordinate;
+		
+		valueForSin = static_cast<double>(valueStep) * (t_max_Sin_X - t_min_Sin_X) + t_min_Sin_X); // preskalovane na interval (-nπ,nπ)
+		qDebug() << "valueForSin:" << valueForSin;
 
-		sinValues[i] = (int)round(((value - r_min) / (r_max - r_min)) * (t_max - t_min) + t_min); // preskalovanie funkcnej hodnoty
+		sinDoubleValue = sin(valueForSin); // toto uz bude (-1.0,1.0)
+		qDebug() << "sinDoubleValue[" << i << "]:" << sinDoubleValue;
 
-		position += stepSize;
-		qDebug() << "scaled value:" << sinValues[i];
-	}
+		sinValue = static_cast<int>(((sinDoubleValue - sin_min) / (sin_max - sin_min)) * (t_max_Y - t_min_Y) + t_min_Y + 0.5); // preskalovanie funkcnej hodnoty do hodnot pre os y
+		qDebug() << "sinValue[" << i << "]:" << sinValue << "\n";
 
-	QPen currentPen;
-	currentPen.setWidth(6);
-	currentPen.setColor(QColor("#1F75FE")); // vlastna modra
-	painter->setPen(currentPen);
-	
-	int xSemiAxislength = origin.x() - margin; // dlzka polovice osi x
-	int xAxisStepSize = xSemiAxislength / (axisSteps / 2); // dlzka kroku na osi x
+		painter->drawPoint(xCoordinate, sinValue);
 
-	QPoint step(origin.x(), origin.y());
+		valueStep += dStepSize;
+	}*/
 
 	if (graphType == 0) // plot points
 	{
-		for (int i = 0; i < (axisSteps / 2) + 1; i++)
+		for (int i = 0; i < axisSteps + 1; i++)
 		{
-			painter->drawPoint(step.x(), step.y() - sinValues[i]);
+			//qDebug() << "valueStep:" << valueStep;
+			xCoordinate = static_cast<int>(valueStep * (t_max_X - t_min_X) + t_min_X + 0.5); // spravna suradnica x na osi x
+			//qDebug() << "xCoordinate:" << xCoordinate;
 
-			step.setX(step.x() + xAxisStepSize);
-		}
+			valueForSin = static_cast<double>(valueStep * (t_max_Sin_X - t_min_Sin_X) + t_min_Sin_X); // preskalovane na interval (-nπ,nπ)
+			//qDebug() << "valueForSin:" << valueForSin;
 
-		step.setX(origin.x());
+			sinDoubleValue = sin(valueForSin); // toto uz bude (-1.0,1.0)
+			//qDebug() << "sinDoubleValue[" << i << "]:" << sinDoubleValue;
 
-		for (int i = 0; i < (axisSteps / 2) + 1; i++)
-		{
-			painter->drawPoint(step.x(), step.y() + sinValues[i]);
+			sinValue = static_cast<int>(((sinDoubleValue - sin_min) / (sin_max - sin_min)) * (t_max_Y - t_min_Y) + t_min_Y + 0.5); // preskalovanie funkcnej hodnoty do hodnot pre os y
+			//qDebug() << "sinValue[" << i << "]:" << sinValue << "\n";
 
-			step.setX(step.x() - xAxisStepSize);
+			painter->drawPoint(xCoordinate, sinValue);
+
+			valueStep += dStepSize;
 		}
 	}
-	else if (graphType == 1) // bar graph
+	/*else if (graphType == 1) // bar graph
 	{
 		currentPen.setColor("black"); currentPen.setWidth(1); painter->setPen(currentPen);
 
@@ -268,9 +278,8 @@ void ViewerWidget::drawSin(int graphType, int interval, int axisSteps) // nakres
 			startPoint.setX(endPoint.x());
 			startPoint.setY(endPoint.y());
 		}
-	}
+	}*/
 
-	delete[] sinValues;
 }
 
 void ViewerWidget::drawCos(int graphType, int interval, int axisSteps) // nakreslenie "Cos(x)"
