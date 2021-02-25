@@ -317,7 +317,6 @@ void ImageViewer::on_spinBox_Interval_valueChanged(int x)
 	int interval = ui->spinBox_Interval->value();
 
 	QString toShow = QString("(-") + QString("%1").arg(interval) + QString("π,") + QString("%1").arg(interval) + QString("π)");
-	qDebug() << toShow;
 
 	ui->label_ShowInterval->setText(toShow);
 }
