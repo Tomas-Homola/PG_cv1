@@ -31,8 +31,8 @@ public:
 	bool getFreeDrawActivated() { return freeDrawActivated; }
 
 	// Cvicenie #1 functions
-	void drawXAxisSteps(int axisSteps, QPoint& origin, int stepSize);
-	void drawYAxisSteps(int axisSteps, QPoint& origin, int stepSize);
+	void drawXAxisSteps(int axisSteps, QPoint& origin);
+	void drawYAxisSteps(int axisSteps, QPoint& origin);
 	void drawAxes(int xAxisSteps);
 
 	void drawSin(int graphType, int interval, int axisSteps);

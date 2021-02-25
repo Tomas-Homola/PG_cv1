@@ -59,53 +59,56 @@ void ViewerWidget::freeDraw(QPoint end, QPen pen)
 }
 
 // Cvicenie #1 functions
-void ViewerWidget::drawXAxisSteps(int axisSteps, QPoint& origin, int stepSize)
+void ViewerWidget::drawXAxisSteps(int axisSteps, QPoint& origin)
 {
-	QPoint step(origin.x(), origin.y());
+	QPen currentPen;
+	currentPen.setWidth(2); currentPen.setColor("white"); painter->setPen(currentPen);
+	int n = axisSteps + 1;
+	//int* xCoordinates = new int[n];
+	int xCoordinate = 0;
 
-	for (int i = 0; i < (axisSteps / 2); i++)
+	double length = 1.0;
+	double dStepSize = length / static_cast<double>(axisSteps);
+
+	double r_min = 0.0; double r_max = 1.0;
+	double t_min = static_cast<double>(margin); double t_max = (double)img->width() - (double)margin;
+
+	QPoint step(margin, origin.y());
+	double value = 0.0;
+
+	for (int i = 0; i < axisSteps + 1; i++)
 	{
-		step.setX(step.x() - stepSize);
+		xCoordinate = static_cast<int>(((value - r_min) / (r_max - r_min)) * (t_max - t_min) + t_min + 0.5);
 
-		painter->drawLine(step.x(), step.y() - 5, step.x(), step.y() + 5);
+		painter->drawLine(xCoordinate, step.y() - 5, xCoordinate, step.y() + 5);
 
-		//qDebug() << step;
-	}
-
-	step.setX(origin.x());
-
-	for (int i = 0; i < (axisSteps / 2); i++)
-	{
-		step.setX(step.x() + stepSize);
-
-		painter->drawLine(step.x(), step.y() - 5, step.x(), step.y() + 5);
-
-		//qDebug() << step;
+		value += dStepSize;
 	}
 }
 
-void ViewerWidget::drawYAxisSteps(int axisSteps, QPoint& origin, int stepSize)
+void ViewerWidget::drawYAxisSteps(int axisSteps, QPoint& origin)
 {
-	QPoint step(origin.x(), origin.y());
+	QPen currentPen;
+	currentPen.setWidth(2); currentPen.setColor("white"); painter->setPen(currentPen);
+	int n = axisSteps + 1;
+	int yCoordinate = 0;
 
-	for (int i = 0; i < (axisSteps / 2); i++)
+	double length = 1.0;
+	double dStepSize = length / static_cast<double>(axisSteps);
+
+	double r_min = 0.0; double r_max = 1.0;
+	double t_min = static_cast<double>(margin); double t_max = (double)img->height() - (double)margin;
+
+	QPoint step(origin.x(), margin);
+	double value = 0.0;
+
+	for (int i = 0; i < axisSteps + 1; i++)
 	{
-		step.setY(step.y() - stepSize);
+		yCoordinate = static_cast<int>(((value - r_min) / (r_max - r_min)) * (t_max - t_min) + t_min + 0.5);
 
-		painter->drawLine(step.x() - 5, step.y(), step.x() + 4, step.y());
+		painter->drawLine(step.x() - 5, yCoordinate, step.x() + 5, yCoordinate);
 
-		//qDebug() << step;
-	}
-
-	step.setY(origin.y());
-
-	for (int i = 0; i < (axisSteps / 2); i++)
-	{
-		step.setY(step.y() + stepSize);
-
-		painter->drawLine(step.x() - 5, step.y(), step.x() + 4, step.y());
-
-		//qDebug() << step;
+		value += dStepSize;
 	}
 }
 
@@ -126,6 +129,9 @@ void ViewerWidget::drawAxes(int axisSteps) // nakreslenie osi
 
 	painter->drawLine(xAxisBegin, xAxisEnd); // os x
 	painter->drawLine(yAxisBegin, yAxisEnd); // os y
+
+	painter->drawText(xAxisEnd.x(), xAxisEnd.y() - 10, "x");
+	painter->drawText(yAxisBegin.x() + 10, yAxisBegin.y(), "y");
 
 	currentPen.setWidth(1);
 	painter->setPen(currentPen);
@@ -224,7 +230,7 @@ void ViewerWidget::drawSin(int graphType, int interval, int axisSteps) // nakres
 			step.setX(step.x() - xAxisStepSize);
 		}
 
-		//drawAxes(axisSteps);
+		drawAxes(axisSteps);
 	}
 	else if (graphType == 2) // line graph
 	{

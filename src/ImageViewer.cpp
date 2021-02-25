@@ -5,8 +5,6 @@ ImageViewer::ImageViewer(QWidget* parent)
 {
 	ui->setupUi(this);
 
-	ui->spinBox_xAxisDivision->findChild<QLineEdit*>()->setReadOnly(true); // courtesy of Filip Vlahy
-
 	// vytvorenie nejakeho default obrazka
 	openNewTabForImg(new ViewerWidget("Default window", QSize(800, 400)));
 	ui->tabWidget->setCurrentIndex(ui->tabWidget->count() - 1);
